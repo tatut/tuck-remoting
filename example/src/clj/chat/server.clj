@@ -24,7 +24,6 @@
 
   chat.events.Say
   (process-event [{m :message} {::tr/keys [client-id e!]} {clients :clients}]
-    (println "SANOTTUA: " e)
     (let [who (-> clients deref (get client-id) :name)]
       (send-message! clients who m)))
 
@@ -33,7 +32,7 @@
     (let [who (-> clients deref (get client-id) :name)]
       (println "[" client-id "] Disconnected" status)
       (swap! clients dissoc client-id)
-      (send-message! clients who "** left the chat **"))))
+      (send-all! clients (chat/->Parted who)))))
 
 (defn -main [& args]
   (tr-server/server {:on-close-event chat/->Disconnected

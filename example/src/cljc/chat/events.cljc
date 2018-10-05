@@ -19,7 +19,7 @@
 (define-server-event Say {})
 (define-client-event Message map->Message)
 (define-client-event Joined map->Joined)
-(define-client-event Parter map->Parted)
+(define-client-event Parted map->Parted)
 
 ;; Server side housekeeping events
 (defrecord Disconnected [status])

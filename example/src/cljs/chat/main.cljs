@@ -37,7 +37,14 @@
 
   ev/Message
   (process-event [msg app]
-    (update app :messages (fnil append-msg []) msg)))
+    (update app :messages (fnil append-msg []) msg))
+
+  ev/Parted
+  (process-event [{name :name} app]
+    (-> app
+        (update :recipients (fnil disj #{}) name)
+        (update :messages (fnil append-msg [])
+                {:type :parted :participant name}))))
 
 (defn chat-ui [e! {:keys [messages compose-message]}]
   [:div
@@ -46,8 +53,15 @@
      (fn [i msg]
        ^{:key i}
        [:div.message
-        (if (= :joined (:type msg))
+        (case (:type msg)
+
+          :joined
           [:b (str "*** " (:participant msg) " joined the chat")]
+
+          :parted
+          [:b (str "*** " (:participant msg) " left the chat")]
+
+          ;; default
           [:div
            [:span {:style {:font-size "75%"}}
             "[" (str (:time msg)) "] "]
