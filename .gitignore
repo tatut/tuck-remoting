@@ -1,0 +1,5 @@
+**/*.log
+**/.rebel*
+**/.nrepl*
+**/target
+**/js/compiled/*
