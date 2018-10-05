@@ -14,5 +14,5 @@
                         :compiler {:optimizations :none
                                    :output-to "resources/public/js/compiled/chat.js"
                                    :output-dir "resources/public/js/compiled/out"}}]}
-  :main chat.main
+  :main chat.server
   :source-paths ["src/clj" "src/cljc" "../src"])
