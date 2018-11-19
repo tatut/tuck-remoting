@@ -20,8 +20,9 @@
     ;(.log js/console "Got event: " (pr-str event))
     (e! event)))
 
-(defn connect! [ws-url app-atom]
+(defn connect! [ws-url app-atom on-connect]
   (let [conn (js/WebSocket. ws-url)]
+    (set! (.-onopen conn) on-connect)
     (set! (.-onmessage conn) (fn [event]
                                (when event
                                  (receive app-atom event))))
@@ -35,8 +36,8 @@
   to apply received events against.
 
   Must be called before any events can be sent."
-  [ws-url app-atom]
-  (connect! ws-url app-atom))
+  [ws-url app-atom on-connect]
+  (connect! ws-url app-atom on-connect))
 
 (defn send-event!
   "Send event to Tuck remoting WS server.
