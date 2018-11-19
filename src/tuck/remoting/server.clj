@@ -2,7 +2,8 @@
   "Tuck remoting http-kit websocket server"
   (:require [tuck.remoting :as tr]
             [tuck.remoting.transit :as transit]
-            [org.httpkit.server :as server :refer [with-channel on-close on-receive send!]]))
+            [org.httpkit.server :as server :refer [with-channel on-close on-receive send!]]
+            [clojure.string :as str]))
 
 (defn read-message [data]
   (let [event-map (transit/transit->clj data)]
@@ -29,7 +30,7 @@
                             event (tr/map->event msg)
                             e! #(send! channel (transit/clj->transit
                                                 {::tr/reply-to event-id
-                                                 ::tr/event-type (.getName (type %))
+                                                 ::tr/event-type (str/replace (.getName (type %)) \_ \-)
                                                  ::tr/event-args (into {} %)}))]
                         (tr/process-event event {::tr/client-id client-id
                                                  ::tr/e! e!} context))))))))
