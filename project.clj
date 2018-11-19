@@ -1,4 +1,4 @@
-(defproject tuck-remoting "20180916-alpha"
+(defproject tuck-remoting "20181119-alpha"
   :dependencies ~(mapv (fn [[dep {ver :mvn/version}]]
                          [dep ver])
                        (read-string (slurp "deps.edn"))))
