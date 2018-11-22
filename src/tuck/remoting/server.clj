@@ -10,11 +10,13 @@
     (assert (map? event-map) "Received event that is not a map")
     event-map))
 
-(defn make-handler [{:keys [context-fn on-close-event]}]
+(defn make-handler [{:keys [context-fn on-connect-event on-close-event]}]
   (fn tuck-remoting-handler [request]
     (let [context (context-fn request)
           client-id (str (java.util.UUID/randomUUID))]
       (with-channel request channel
+
+
         (on-close channel (fn [status]
                             (when on-close-event
                               (tr/process-event (on-close-event status)
@@ -24,16 +26,22 @@
                                                             "Client connection has been closed"
                                                             {::tr/client-id client-id}))}
                                                 context))))
-        (on-receive channel
-                    (fn [data]
-                      (let [{::tr/keys [event-id] :as msg} (read-message data)
-                            event (tr/map->event msg)
-                            e! #(send! channel (transit/clj->transit
-                                                {::tr/reply-to event-id
-                                                 ::tr/event-type (str/replace (.getName (type %)) \_ \-)
-                                                 ::tr/event-args (into {} %)}))]
-                        (tr/process-event event {::tr/client-id client-id
-                                                 ::tr/e! e!} context))))))))
+        (let [e! #(send! channel
+                         (transit/clj->transit
+                          {::tr/reply-to event-id
+                           ::tr/event-type (str/replace (.getName (type %)) \_ \-)
+                           ::tr/event-args (into {} %)}))]
+          (when on-connect-event
+            (tr/process-event (on-connect-event)
+                              {::tr/client-id client-id
+                               ::tr/e! e!}
+                              context))
+          (on-receive channel
+                      (fn [data]
+                        (let [{::tr/keys [event-id] :as msg} (read-message data)
+                              event (tr/map->event msg)]
+                          (tr/process-event event {::tr/client-id client-id
+                                                   ::tr/e! e!} context)))))))))
 
 (defn server [options]
   (server/run-server (make-handler options) {:port (:port options)}))
