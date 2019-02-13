@@ -26,22 +26,23 @@
                                                             "Client connection has been closed"
                                                             {::tr/client-id client-id}))}
                                                 context))))
-        (let [e! #(send! channel
-                         (transit/clj->transit
-                          {::tr/reply-to event-id
-                           ::tr/event-type (str/replace (.getName (type %)) \_ \-)
-                           ::tr/event-args (into {} %)}))]
+        (let [e!-fn (fn [event-id]
+                      #(send! channel
+                              (transit/clj->transit
+                               {::tr/reply-to event-id
+                                ::tr/event-type (str/replace (.getName (type %)) \_ \-)
+                                ::tr/event-args (into {} %)})))]
           (when on-connect-event
             (tr/process-event (on-connect-event)
                               {::tr/client-id client-id
-                               ::tr/e! e!}
+                               ::tr/e! (e!-fn nil)}
                               context))
           (on-receive channel
                       (fn [data]
                         (let [{::tr/keys [event-id] :as msg} (read-message data)
                               event (tr/map->event msg)]
                           (tr/process-event event {::tr/client-id client-id
-                                                   ::tr/e! e!} context)))))))))
+                                                   ::tr/e! (e!-fn event-id)} context)))))))))
 
 (defn server [options]
   (server/run-server (make-handler options) {:port (:port options)}))
