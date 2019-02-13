@@ -9,11 +9,7 @@
 (defmulti map->event :tuck.remoting/event-type)
 
 (defn- receive [app-atom event]
-  (let [e! (fn e! [event]
-             (binding [t/*current-send-function* e!]
-               (swap! app-atom
-                      (fn [app event]
-                        (t/process-event event app)) event)))
+  (let [e! (t/control app-atom)
         event-map (transit/transit->clj (.-data event))
         event (map->event event-map)]
     (assert (satisfies? t/Event event) "Not an event")
