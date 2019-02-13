@@ -6,7 +6,7 @@
    (defn clj->transit [data]
      (let [out (java.io.ByteArrayOutputStream.)]
        (t/write (t/writer out :json) data)
-       (String. (.toByteArray out))))
+       (String. (.toByteArray out) "UTF-8")))
 
    :cljs
    (defn clj->transit [data]
